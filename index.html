@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b2f6b">
+<title>Chain Reaction Carnival · Quizmas Game Hub</title>
+<meta name="description" content="Quizmas Season 3 fun game: place ramps, dominoes, springs and baubles to set off a Christmas carnival chain reaction.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/baloo-2-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<canvas id="snow" aria-hidden="true"></canvas>
+
+<!-- 1. LOADER -->
+<section id="loader" class="screen active" aria-live="polite">
+  <div class="loader-card">
+    <svg class="wheel" viewBox="0 0 200 200" aria-hidden="true">
+      <g class="wheel-spin">
+        <circle cx="100" cy="100" r="78" fill="none" stroke="#4fc3f7" stroke-width="6"/>
+        <circle cx="100" cy="100" r="60" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="4 8"/>
+        <g id="spokes"></g>
+        <circle cx="100" cy="100" r="12" fill="#f6c453"/>
+      </g>
+      <path d="M100 100 L60 196 M100 100 L140 196" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+    </svg>
+    <p class="season">QUIZMAS SEASON 3</p>
+    <h1 class="loader-title">Unwrap the Future</h1>
+    <div class="loader-bar" role="progressbar" aria-label="Loading the game" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="loader-fill"></div>
+    </div>
+    <p class="loader-status"><span id="loaderText">Putting up the big tent…</span> <b id="loaderPct">0%</b></p>
+  </div>
+</section>
+
+<!-- 2. CURTAIN + INTRO -->
+<section id="intro" class="screen">
+  <div class="stage-lights" aria-hidden="true"></div>
+  <div class="intro-inner" id="introInner">
+    <p class="track" id="trackTag">Quizmas Fun Zone</p>
+    <h1 class="marquee" id="marquee" aria-label="Chain Reaction Carnival">
+      <span class="m-row">CHAIN REACTION</span>
+      <span class="m-row m-big">CARNIVAL</span>
+    </h1>
+    <p class="objective">Place the pieces, set them off, and watch your Christmas chain reaction hit the target!</p>
+    <ul class="controls" aria-label="Controls">
+      <li><span class="ci">✋</span><span><b>Drag</b> pieces onto the glowing spots</span></li>
+      <li><span class="ci">↻</span><span><b>Tap</b> a ramp or spring to flip it</span></li>
+      <li><span class="ci">🔨</span><span><b>Set it off</b> and watch it go</span></li>
+    </ul>
+    <button class="btn btn-gold btn-big" id="startBtn">Start Game</button>
+  </div>
+  <div class="curtain left" aria-hidden="true"></div>
+  <div class="curtain right" aria-hidden="true"></div>
+  <div class="valance" aria-hidden="true"></div>
+  <button class="curtain-hint" id="curtainHint"><span class="tap-dot"></span>Tap to open the curtains</button>
+</section>
+
+<!-- 3. ENTRY -->
+<section id="entry" class="screen">
+  <form class="panel entry-panel" id="entryForm" novalidate>
+    <p class="ticket-top">ADMIT ONE · CARNIVAL TICKET</p>
+    <h2>Who's riding?</h2>
+    <p class="muted">Your score goes on the Quizmas fun leaderboard.</p>
+    <label for="playerName">Your name</label>
+    <input id="playerName" name="playerName" autocomplete="name" maxlength="40" placeholder="e.g. Ada Okafor" required>
+    <label for="quizmasId">Quizmas ID</label>
+    <input id="quizmasId" name="quizmasId" autocomplete="off" maxlength="20" placeholder="e.g. QZ-1024" required>
+    <p class="form-error" id="entryError" role="alert"></p>
+    <p class="attempt-note" id="attemptNote"></p>
+    <button class="btn btn-gold" type="submit">Let's go!</button>
+  </form>
+</section>
+
+<!-- 4. MEET THE OBJECTS -->
+<section id="meet" class="screen">
+  <div class="meet-wrap">
+    <h2>Meet the pieces</h2>
+    <p class="muted">Every piece can set off the next one.</p>
+    <div class="demo-grid" id="demoGrid"></div>
+    <button class="btn btn-gold" id="meetBtn">I'm ready!</button>
+  </div>
+</section>
+
+<!-- 5. GAME -->
+<section id="game" class="screen">
+  <header class="hud">
+    <div class="ride-info">
+      <span class="ride-num" id="rideNum">Ride 1 / 3</span>
+      <b class="ride-title" id="rideTitle">Ring the Jingle Bell</b>
+    </div>
+    <div class="hud-stats">
+      <div class="tries" id="tries" aria-label="Tries left"></div>
+      <div class="ride-score"><span>Score</span><b id="rideScore">0</b></div>
+      <div class="timer" id="timer"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" class="t-bg"/><circle cx="18" cy="18" r="15.5" class="t-fg" id="timerRing"/></svg><b id="timerText">1:10</b></div>
+      <button class="icon-btn" id="muteBtn" aria-label="Sound on"><span>🔊</span></button>
+    </div>
+  </header>
+  <div class="play">
+    <div class="board-wrap" id="boardWrap">
+      <canvas id="board" aria-label="The carnival play area"></canvas>
+      <p class="goal" id="goalText"></p>
+      <div class="ride-banner" id="rideBanner" hidden>
+        <span id="bannerNum">RIDE 1</span>
+        <b id="bannerTitle">Ring the Jingle Bell</b>
+        <em id="bannerGoal"></em>
+      </div>
+      <div class="ride-card" id="rideCard" hidden>
+        <h3 id="cardTitle">Ding! You did it!</h3>
+        <ul class="points" id="cardPoints"></ul>
+        <p class="card-total">Ride score <b id="cardTotal">0</b><span>/100</span></p>
+        <div class="card-actions" id="cardActions"></div>
+      </div>
+    </div>
+    <aside class="dock" id="dock">
+      <div class="tray" id="tray" aria-label="Your pieces"></div>
+      <div class="actions">
+        <button class="btn btn-ghost small" id="undoBtn" aria-label="Undo">↶ Undo</button>
+        <button class="btn btn-ghost small" id="resetBtn" aria-label="Clear all pieces">⟲ Clear</button>
+        <button class="btn btn-go" id="goBtn">🔨 Set it off!</button>
+      </div>
+    </aside>
+  </div>
+  <p class="rotate-tip" id="rotateTip">Tip: turn your phone sideways for a bigger view.</p>
+  <div class="toast" id="toast" role="status"></div>
+</section>
+
+<!-- 6. RESULTS -->
+<section id="results" class="screen">
+  <div class="results-wrap">
+    <div class="panel results-panel">
+      <p class="season">CHAIN REACTION CARNIVAL</p>
+      <div class="trophy" aria-hidden="true">🏆</div>
+      <h2 id="achievement">Chain Reaction Champion!</h2>
+      <p class="who" id="resultsName"></p>
+      <div class="big-score"><b id="scoreNum">0</b><span>/ 100</span></div>
+      <div class="stats">
+        <div><b id="statTargets">0/3</b><span>targets hit</span></div>
+        <div><b id="statChain">0</b><span>best chain</span></div>
+        <div><b id="statTime">0s</b><span>time</span></div>
+      </div>
+      <ul class="ride-list" id="rideList"></ul>
+      <p class="save-status" id="saveStatus"></p>
+      <div class="results-actions">
+        <button class="btn btn-gold" id="againBtn">Play again</button>
+        <button class="btn btn-ghost" id="backBtn" hidden>Back to my track</button>
+      </div>
+    </div>
+  </div>
+  <canvas id="confetti" aria-hidden="true"></canvas>
+</section>
+
+<noscript><p class="noscript">Chain Reaction Carnival needs JavaScript turned on.</p></noscript>
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/matter.min.js"></script>
+<script src="js/config.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
