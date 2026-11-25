@@ -2,7 +2,7 @@
 window.CR_CONFIG = {
   // Paste the SAME Google Apps Script web-app link used by the other Quizmas games.
   // While empty, scores are kept safely on the device and sent later.
-  SHEETS_URL: "",
+  SHEETS_URL: "https://script.google.com/macros/s/AKfycbzxAbynK-IJnqTZnjvMTBGATtzqUDDBsUL1kxRjUNJGn_zTyS02vBRsnm8DaHUpS7DC/exec",
   GAME_ID: "chain-reaction",
   GAME_NAME: "Chain Reaction Carnival",
   // Fun games are saved apart from the skill-based games (their own "Fun Scores" tab).
